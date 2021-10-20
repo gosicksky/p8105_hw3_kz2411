@@ -1,0 +1,270 @@
+---
+title: "p8105_hw3_kz2411"
+author: "Keming Zhang"
+date: "10/15/2021"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(p8105.datasets)
+```
+
+## Problem 1
+```{r load data}
+#load data for problem 1
+data("instacart")
+```
+
+### a)
+```{r}
+#group by aisle_id, calculate the number of each aisle and order them according to number.
+group_by_aisles <- instacart %>%
+  janitor::clean_names() %>%
+  group_by(aisle) %>%
+  summarize(n_obs = n()) %>%
+  arrange(desc(n_obs))
+
+#the number of aisle
+nrow(group_by_aisles)
+
+#the most aisle
+head(group_by_aisles,2)
+```
+
+There are 134 aisles, and fresh vegetables are the most items ordered from. 
+It shows that people can order many categories of things online and fresh vegetables are the most.
+It is reasonable, for now online shopping is convenient and fresh vegetables are necessities.
+
+### b)
+```{r create a plot}
+#arrange and plot
+group_by_aisles %>%
+  filter(n_obs > 10000) %>% #more than 10000
+  arrange(desc(n_obs)) %>%
+  #convert char to factor for x axis uses the alphabetical order when ggplot
+  mutate(
+    aisle = as_factor(aisle)
+  ) %>%
+  ggplot(aes(x = aisle, y = n_obs)) +
+  geom_point() + 
+  labs(
+    title = "The number of items ordered in each aisle",
+    x = "Aisles",
+    y = "Number"
+  ) +
+  theme(axis.text.x = element_text(angle = 270))
+```
+
+The plot shows that the number of fresh vegetables and fresh fruits is far greater than other aisles, nearly at least two times number of other aisles.
+
+### c)
+```{r create a table for three popular items}
+#create a table for three popular items
+three_items_table <- instacart %>%
+  janitor::clean_names() %>%
+  filter(aisle %in% c("baking ingredients","dog food care","packaged vegetables fruits")) %>%
+  group_by(product_id) %>%
+  summarize(
+    product_id,
+    product_name,
+    product_num = n(), #number of the product
+    aisle
+  ) %>%
+  distinct() %>%
+  group_by(aisle) %>%
+  arrange(desc(product_num)) %>%
+  top_n(3,product_num) #select top 3 of each aisle
+
+three_items_table
+```
+
+Among three aisles, people buy the packaged vegetables fruits most, followed by baking ingredients and the least dog food care. And there is about one order of magnitude among them. It is reasonable, for vegetable fruits are necessities.
+
+### d)
+```{r create a table of mean hour}
+#create a table of mean hour
+mean_hour_table <- instacart %>%
+  filter(product_name %in% c("Pink Lady Apples","Coffee Ice Cream")) %>%
+  group_by(product_name,order_dow) %>%
+  summarize(
+    mean_hour = mean(order_hour_of_day)
+  ) %>%
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  ) %>%
+  # use 0 - 6 as Sunday - Saturday
+  rename(sunday = "0", monday = "1", tuesday = "2", wednesday = "3",
+         thursday = "4", friday = "5", saturday = "6") %>%
+  janitor::clean_names()
+
+mean_hour_table %>% knitr::kable(digits = 1)
+```
+
+From the table, we can that people order coffee_ice_cream mainly in the afternoon no matter what day it is. People order pink lady apples mainly at noon.
+
+## Problem 2
+```{r load data for problem 2}
+#load data for problem 2
+data("brfss_smart2010")
+```
+
+```{r clean the data}
+#clean the data
+brfss_data <- brfss_smart2010 %>%
+  janitor::clean_names() %>%
+  rename(state = locationabbr, location = locationdesc) %>% #rename locationabbr and locationdesc
+  filter(topic == "Overall Health") %>%
+  filter(response %in% c("Poor","Fair","Good","Very good","Excellent")) %>%
+  mutate(
+    response = factor(response, levels = c("Poor","Fair","Good","Very good","Excellent"))
+  )
+
+brfss_data
+```
+
+### a)
+```{r which states were observed at 7 or more locations}
+#in 2002
+num_in_2002 <- brfss_data %>%
+  filter(year == 2002) %>%
+  distinct(state,location) %>%
+  group_by(state) %>%
+  summarize(
+    num = n()
+  ) %>%
+  filter(num >= 7)
+
+#in 2010
+num_in_2010 <- brfss_data %>%
+  filter(year == 2010) %>%
+  distinct(state,location) %>%
+  group_by(state) %>%
+  summarize(
+    num = n()
+  ) %>%
+  filter(num >= 7)
+```
+
+In 2002, the result is as below.
+```{r}
+num_in_2002 %>% knitr::kable(digits = 1)
+```
+
+In 2010, the result is as below.
+```{r}
+num_in_2010 %>% knitr::kable(digits = 1)
+```
+
+### b)
+```{r dataset limit to excellent}
+#dataset limit to excellent
+brfss_excellent <- brfss_data %>%
+  filter(response == "Excellent") %>%
+  group_by(year,state,response) %>%
+  summarize(
+    mean_value = mean(data_value) 
+  )
+brfss_excellent
+```
+
+
+```{r plot}
+#create a spaghetti plot
+ggplot(brfss_excellent, aes(x = year, y = mean_value, group = state)) +
+  geom_line(aes(color = state),na.rm = TRUE) +
+  labs(
+    title = "Average value over time",
+    x = "Year",
+    y = "Average Value"
+  )
+```
+
+
+### c)
+```{r NY}
+#plot for NY
+#data for plot
+ny_data <- brfss_data %>%
+  filter(state == "NY" & (year == 2006 | year == 2010))
+
+#plot
+ggplot(ny_data,aes(x = response, y = data_value)) + 
+  geom_violin() +
+  theme(axis.text.x = element_text(angle = 270)) +
+  labs(
+    title = "Distribution of data_value for responses",
+    x = "Response Type",
+    y = "Value"
+  ) +
+  facet_grid(.~year)
+```
+
+
+
+## Problem 3
+### a)
+```{r load data for problem 3}
+#load data and wrangle
+accelerometer_data <- read_csv(file = './data/accelerometer.csv',
+                            show_col_types = FALSE) %>%
+  janitor::clean_names() %>%
+  #turn table from wide to long and rename
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "minute",
+    names_prefix = "activity_",
+    values_to = "activity"
+  ) %>%
+  mutate(
+    #decide whether the day is a weekend day or not
+    day_kind = ifelse(day %in% c("Monday","Tuesday","Wednesday","Thursday","Friday"),0,1),
+    day_kind = as.factor(day_kind),
+    minute = as.numeric(minute)
+  )
+
+head(accelerometer_data,1) #check whether data is with reasonable variable classes
+accelerometer_data
+```
+
+There are 50400 observations and 6 variables exist in the resulting dataset. The variables are week (numeric), day id (numeric), day (character), minute (numeric), activity (numeric) and day_kind (factor).
+
+### b)
+```{r aggregate day}
+#create table
+aggregate_data <- accelerometer_data %>%
+  group_by(week,day_id,day,day_kind) %>%
+  summarize(
+    activity_sum = sum(activity)
+  )
+
+#show table
+aggregate_data %>% knitr::kable(digits = 1)
+```
+
+There are no apparent trend.
+On the whole, although the man does more activities in the weekday than in the weekend, there are some exceptions.
+
+### c)
+```{r draw a plot}
+ggplot(accelerometer_data,aes(x = minute / 60, y = activity,color = day)) +
+  geom_point() +
+  geom_line() +
+  scale_x_continuous(
+    breaks = c(0, 6,12,18,24), 
+    labels = c("00:00", "6:00", "12:00", "18:00", "23:59")
+  ) +
+  labs(
+    title = "24-hour activity time courses for each day",
+    x = "Time",
+    y = "Acctivity"
+  )
+```
+
+The man may sleep from 22:00 to 6:00 for this is the time period when there are least activities.
+When it is on the weekend, the man does more activities at noon than in other time period. When it is on the weekday, the man does more activities in the evening than in other time period.
+
