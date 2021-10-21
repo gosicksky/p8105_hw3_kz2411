@@ -24,7 +24,7 @@ instacart
 ```
 
 ### Dataset Description
-There are 1384617 observations and 15 variables in the dataset. Key variables are order_dow (integer) which means the day of the week on which the order was placed, order_hour_of_day (integer) which means the hour of the day on which the order was placed and aisle (character) which means the name of the aisle and so on. The examples is as below.
+There are `r nrow(instacart)` observations and `r ncol(instacart)` variables in the dataset. Key variables are order_dow (integer) which means the day of the week on which the order was placed, order_hour_of_day (integer) which means the hour of the day on which the order was placed and aisle (character) which means the name of the aisle and so on. The examples is as below.
 ```{r example}
 #example of the dataset
 head(instacart,2) %>% knitr::kable(digits = 1)
