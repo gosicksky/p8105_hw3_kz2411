@@ -79,7 +79,7 @@ three_items_table <- instacart %>%
   arrange(desc(product_num)) %>%
   top_n(3,product_num) #select top 3 of each aisle
 
-three_items_table
+three_items_table %>% knitr::kable(digits = 1)
 ```
 
 Among three aisles, people buy the packaged vegetables fruits most, followed by baking ingredients and the least dog food care. And there is about one order of magnitude among them. It is reasonable, for vegetable fruits are necessities.
