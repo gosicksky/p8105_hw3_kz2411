@@ -243,7 +243,7 @@ head(accelerometer_data,1) #check whether data is with reasonable variable class
 accelerometer_data
 ```
 
-There are 50400 observations and 6 variables exist in the resulting dataset. The variables are week (numeric), day id (numeric), day (character), minute (numeric), activity (numeric) and day_kind (factor).
+There are 50400 observations and 6 variables exist in the resulting dataset. The variables are week (numeric), day id (numeric), day (character), minute (numeric), activity (numeric) and day kind (factor).
 
 ### b)
 ```{r aggregate day}
@@ -278,6 +278,6 @@ ggplot(accelerometer_data,aes(x = minute / 60, y = activity,color = day)) +
   )
 ```
 
-The man may sleep from 22:00 to 6:00 for this is the time period when there are least activities.
+The man may sleep from 22:00 to 6:00 for this is the time period when there are less activities.
 When it is on the weekend, the man does more activities at noon than in other time period. When it is on the weekday, the man does more activities in the evening than in other time period.
 
