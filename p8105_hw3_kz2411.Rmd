@@ -19,6 +19,18 @@ library(p8105.datasets)
 data("instacart")
 ```
 
+```{r description of the dataset}
+instacart
+```
+
+### Dataset Description
+There are 1384617 observations and 15 variables in the dataset. Key variables are order_dow (integer) which means the day of the week on which the order was placed, order_hour_of_day (integer) which means the hour of the day on which the order was placed and aisle (character) which means the name of the aisle and so on. The examples is as below.
+```{r example}
+#example of the dataset
+head(instacart,2) %>% knitr::kable(digits = 1)
+```
+This customer ordered Bulgarian Yogurt and Organic 4% Milk Fat Whole Milk Cottage Cheese from dairy eggs department at 10:00 on Thursday.
+
 ### a)
 ```{r}
 #group by aisle_id, calculate the number of each aisle and order them according to number.
@@ -50,13 +62,13 @@ group_by_aisles %>%
     aisle = as_factor(aisle)
   ) %>%
   ggplot(aes(x = aisle, y = n_obs)) +
-  geom_point() + 
+  geom_bar(stat = "identity") + 
   labs(
     title = "The number of items ordered in each aisle",
     x = "Aisles",
     y = "Number"
   ) +
-  theme(axis.text.x = element_text(angle = 270))
+  theme(axis.text.x = element_text(angle = 270, hjust = 0))
 ```
 
 The plot shows that the number of fresh vegetables and fresh fruits is far greater than other aisles, nearly at least two times number of other aisles.
@@ -253,7 +265,6 @@ On the whole, although the man does more activities in the weekday than in the w
 ```{r draw a plot}
 # draw a plot
 ggplot(accelerometer_data,aes(x = minute / 60, y = activity,color = day)) +
-  geom_point() +
   geom_line() +
   #convert minute to hour
   scale_x_continuous(
